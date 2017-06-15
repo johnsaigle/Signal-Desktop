@@ -38437,8 +38437,21 @@ MessageReceiver.prototype.extend({
             console.log('read messages',
                     'from', envelope.source + '.' + envelope.sourceDevice);
             this.handleRead(syncMessage.read, envelope.timestamp);
+        } else if (syncMessage.verification) {
+            this.handleVerification(syncMessage.verification);
         } else {
             throw new Error('Got empty SyncMessage');
+        }
+    },
+    handleVerification: function(verification) {
+        for (var i = 0; i < verification.length; ++i) {
+            var ev = new Event('verification');
+            ev.verification = {
+                state: verification[i].state,
+                destination: verification[i].destination,
+                identityKey: verification[i].identityKey.toArrayBuffer()
+            };
+            this.dispatchEvent(ev);
         }
     },
     handleRead: function(read, timestamp) {
@@ -39207,6 +39220,24 @@ MessageSender.prototype = {
             return this.sendIndividualProto(myNumber, contentMessage, Date.now());
         }
     },
+    syncVerification: function(state, destination, identityKey) {
+        var myNumber = textsecure.storage.user.getNumber();
+        var myDevice = textsecure.storage.user.getDeviceId();
+        if (myDevice != 1) {
+            var verification = new textsecure.protobuf.SyncMessage.Verification();
+            verification.state = state;
+            verification.destination = destination;
+            verification.identityKey = identityKey;
+
+            var syncMessage = new textsecure.protobuf.SyncMessage();
+            syncMessage.verification = verification;
+
+            var contentMessage = new textsecure.protobuf.Content();
+            contentMessage.syncMessage = syncMessage;
+
+            return this.sendIndividualProto(myNumber, contentMessage, Date.now());
+        }
+    },
 
     sendGroupProto: function(numbers, proto, timestamp) {
         timestamp = timestamp || Date.now();
@@ -39451,6 +39482,7 @@ textsecure.MessageSender = function(url, ports, username, password) {
     this.leaveGroup                        = sender.leaveGroup                       .bind(sender);
     this.sendSyncMessage                   = sender.sendSyncMessage                  .bind(sender);
     this.syncReadMessages                  = sender.syncReadMessages                 .bind(sender);
+    this.syncVerification                  = sender.syncReadMessages                 .bind(sender);
 };
 
 textsecure.MessageSender.prototype = {
