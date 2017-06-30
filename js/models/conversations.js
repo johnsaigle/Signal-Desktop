@@ -142,8 +142,7 @@
                 || (beginningVerified !== verified && verified !== UNVERIFIED)
                 || (keychange && verified === VERIFIED)) {
 
-                var local = !options.viaSyncMessage && !options.viaContactSync;
-                this.addVerifiedChange(this.id, verified === VERIFIED, {local: local});
+                this.addVerifiedChange(this.id, verified === VERIFIED, {local: !options.viaSyncMessage});
             }
             if (!options.viaSyncMessage) {
                 return this.sendVerifySyncMessage(this.id, verified);
@@ -289,7 +288,6 @@
         var message = new Whisper.Message({
             conversationId  : this.id,
             type            : 'verified-change',
-            // why is sent_at set to this.get('timestamp?')
             sent_at         : this.get('timestamp'),
             received_at     : timestamp,
             verifiedChanged : id,
@@ -301,7 +299,7 @@
         if (this.isPrivate()) {
             var groups = ConversationController.getAllGroupsInvolvingId(id);
             _.forEach(groups, function(group) {
-                group.addVerifiedChange(id, verified);
+                group.addVerifiedChange(id, verified, options);
             });
         }
     },
