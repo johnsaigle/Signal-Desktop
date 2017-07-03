@@ -188,8 +188,9 @@ describe("SignalProtocolStore", function() {
           record.save({ firstUse: false }).then(function() { done(); });
         });
         describe('If nonblocking approval is required', function() {
-          var now = Date.now();
+          var now;
           before(function(done) {
+            now = Date.now();
             record.save({ timestamp: now }).then(function() { done(); });
           });
           it('sets non-blocking approval', function(done) {
