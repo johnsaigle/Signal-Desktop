@@ -629,6 +629,9 @@
 
         listenBack: function(view) {
             this.panels = this.panels || [];
+            if (this.panels.length > 0) {
+                this.panels[0].$el.hide();
+            }
             this.panels.unshift(view);
 
             if (this.panels.length === 1) {
@@ -640,6 +643,9 @@
         },
         resetPanel: function() {
             var view = this.panels.shift();
+            if (this.panels.length > 0) {
+                this.panels[0].$el.show();
+            }
             view.remove();
 
             if (this.panels.length === 0) {
